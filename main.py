@@ -21,10 +21,13 @@ def start(message):
 def messages(message):
     if message.text.lower() not in ['спасибо', 'спс', 'рахмет']:
         weather_now(message)
+    elif message.text.lower() in ['привет','здравствуй','приветик']:
+        hello(message)
     else:
         thanks(message)
 
-
+def hello(message):
+        bot.send_message(message.chat.id, 'Привет, привет мой друг! Выбирай город')
 
 
 def thanks(message):
