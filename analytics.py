@@ -85,6 +85,7 @@ def get_task_stats(chat_id):
 
 
 def get_city_chart():
+    os.makedirs("charts", exist_ok=True)
     with connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -139,6 +140,7 @@ def get_stats(chat_id):
 
 
 def get_currency_history_chart():
+    os.makedirs("charts", exist_ok=True)
     end_date = date.today()
     start_date = end_date - timedelta(days=6)
     dates = []
