@@ -1,12 +1,14 @@
 import telebot
 from config import TELEGRAM_TOKEN
 from handlers import register_handlers
+from database import init_db
 from daily_report import send_daily_reports
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import pytz
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
+init_db()
 register_handlers(bot)
 
 # Планировщик: ежедневная рассылка в 07:30 по МСК
