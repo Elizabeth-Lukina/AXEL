@@ -1,15 +1,23 @@
-import psycopg2
+# import psycopg2
 from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+import sqlite3
+import os
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "weatherbot.db")
 
 
 def connect():
-    return psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
-    )
+    return sqlite3.connect(DB_PATH)
+
+
+# def connect():
+#     return psycopg2.connect(
+#         dbname=DB_NAME,
+#         user=DB_USER,
+#         password=DB_PASSWORD,
+#         host=DB_HOST,
+#         port=DB_PORT
+#     )
 
 
 def init_db():

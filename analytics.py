@@ -1,4 +1,4 @@
-import psycopg2
+# import psycopg2
 from datetime import datetime, date, timedelta
 import matplotlib.pyplot as plt
 import requests
@@ -6,14 +6,14 @@ import os
 from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 
-def connect():
-    return psycopg2.connect(
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT
-    )
+# def connect():
+#     return psycopg2.connect(
+#         dbname=DB_NAME,
+#         user=DB_USER,
+#         password=DB_PASSWORD,
+#         host=DB_HOST,
+#         port=DB_PORT
+#     )
 
 
 def log_usage(chat_id, command, extra=None):
