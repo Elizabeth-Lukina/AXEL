@@ -16,33 +16,6 @@ def connect():
     )
 
 
-def init_db():
-    with connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-            CREATE TABLE IF NOT EXISTS usage_log (
-                id SERIAL PRIMARY KEY,
-                chat_id BIGINT,
-                command TEXT,
-                extra TEXT,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-            CREATE TABLE IF NOT EXISTS users (
-                chat_id BIGINT PRIMARY KEY,
-                city TEXT DEFAULT 'Санкт-Петербург',
-                daily_enabled BOOLEAN DEFAULT TRUE
-            );
-            CREATE TABLE IF NOT EXISTS tasks (
-                id SERIAL PRIMARY KEY,
-                chat_id BIGINT,
-                task TEXT,
-                due_date DATE,
-                done BOOLEAN DEFAULT FALSE
-            );
-            """)
-        conn.commit()
-
-
 def log_usage(chat_id, command, extra=None):
     with connect() as conn:
         with conn.cursor() as cur:
@@ -53,7 +26,7 @@ def log_usage(chat_id, command, extra=None):
         conn.commit()
 
 
-def get_task_stats(chat_id):
+def get_task_stats(chat_id):  # статистика задач пользователя
     with connect() as conn:
         with conn.cursor() as cur:
             # Всего задач
@@ -84,7 +57,7 @@ def get_task_stats(chat_id):
     return text
 
 
-def get_city_chart():
+def get_city_chart():  # построение топ-5 городов
     os.makedirs("charts", exist_ok=True)
     with connect() as conn:
         with conn.cursor() as cur:
@@ -108,7 +81,7 @@ def get_city_chart():
     return chart_path
 
 
-def get_stats(chat_id):
+def get_stats(chat_id):  # аналитика по боту
     with connect() as conn:
         with conn.cursor() as cur:
             # Всего задач
@@ -139,7 +112,7 @@ def get_stats(chat_id):
     return text
 
 
-def get_currency_history_chart():
+def get_currency_history_chart():  # график курса USD/EUR
     os.makedirs("charts", exist_ok=True)
     end_date = date.today()
     start_date = end_date - timedelta(days=6)
