@@ -5,6 +5,7 @@ load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OWM_API_KEY = os.getenv("OWM_API_KEY")
+CUR_API_KEY = os.getenv("CUR_API_KEY")
 
 # PostgreSQL config
 DB_NAME = os.getenv("DB_NAME")
