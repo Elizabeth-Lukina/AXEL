@@ -1,69 +1,53 @@
-# import psycopg2
-from datetime import datetime, date, timedelta
+import os
 import matplotlib.pyplot as plt
 import requests
-import os
-from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from datetime import date, timedelta
+from database import connect
 
+def get_task_stats(chat_id):
+    conn = connect()
+    cur = conn.cursor()
 
-# def connect():
-#     return psycopg2.connect(
-#         dbname=DB_NAME,
-#         user=DB_USER,
-#         password=DB_PASSWORD,
-#         host=DB_HOST,
-#         port=DB_PORT
-#     )
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = ?;", (chat_id,))
+    total = cur.fetchone()[0]
 
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = ? AND done = 1;", (chat_id,))
+    done = cur.fetchone()[0]
 
-def log_usage(chat_id, command, extra=None):
-    with connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO usage_log (chat_id, command, extra) VALUES (%s, %s, %s);",
-                (chat_id, command, extra)
-            )
-        conn.commit()
+    cur.execute("SELECT COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT due_date), 0) FROM tasks WHERE chat_id = ?;", (chat_id,))
+    avg = cur.fetchone()[0] or 0
 
+    cur.execute("SELECT strftime('%w', due_date), COUNT(*) FROM tasks WHERE chat_id = ? GROUP BY 1 ORDER BY 2 DESC LIMIT 1;", (chat_id,))
+    max_day = cur.fetchone()
 
-def get_task_stats(chat_id):  # статистика задач пользователя
-    with connect() as conn:
-        with conn.cursor() as cur:
-            # Всего задач
-            cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = %s;", (chat_id,))
-            total = cur.fetchone()[0]
+    cur.close()
+    conn.close()
 
-            # Выполненные задачи
-            cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = %s AND done = TRUE;", (chat_id,))
-            done = cur.fetchone()[0]
-
-            # Среднее в день
-            cur.execute(
-                "SELECT COUNT(*)::float / NULLIF(COUNT(DISTINCT due_date), 0) FROM tasks WHERE chat_id = %s;",
-                (chat_id,)
-            )
-            avg = cur.fetchone()[0] or 0
-
-            # День недели с наибольшим количеством задач
-            cur.execute(
-                "SELECT TO_CHAR(due_date, 'Day'), COUNT(*) FROM tasks WHERE chat_id = %s GROUP BY 1 ORDER BY 2 DESC LIMIT 1;",
-                (chat_id,)
-            )
-            max_day = cur.fetchone()
-
-    text = f"📊 Задачи всего: {total}\\n✅ Выполнено: {done}\\n📆 Среднее в день: {avg:.2f}"
+    text = f"📊 Задачи всего: {total}\n✅ Выполнено: {done}\n📆 Среднее в день: {avg:.2f}"
     if max_day:
-        text += f"\\n📈 Самый загруженный день: {max_day[0].strip()} ({max_day[1]} задач)"
+        days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+        text += f"\n📈 Самый загруженный день: {days[int(max_day[0])]} ({max_day[1]} задач)"
     return text
-
-
-def get_city_chart():  # построение топ-5 городов
+def log_usage(chat_id, command, extra=None):
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO usage_log (chat_id, command, extra)
+        VALUES (?, ?, ?)
+    """, (chat_id, command, extra))
+    conn.commit()
+    cur.close()
+    conn.close()
+def get_city_chart():
     os.makedirs("charts", exist_ok=True)
-    with connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT extra, COUNT(*) FROM usage_log WHERE command='weather_query' GROUP BY extra ORDER BY COUNT(*) DESC LIMIT 5;")
-            rows = cur.fetchall()
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("SELECT extra, COUNT(*) FROM usage_log WHERE command='weather_query' GROUP BY extra ORDER BY COUNT(*) DESC LIMIT 5;")
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
 
     cities = [row[0] for row in rows]
     counts = [row[1] for row in rows]
@@ -80,39 +64,32 @@ def get_city_chart():  # построение топ-5 городов
     plt.close()
     return chart_path
 
+def get_stats(chat_id):
+    conn = connect()
+    cur = conn.cursor()
 
-def get_stats(chat_id):  # аналитика по боту
-    with connect() as conn:
-        with conn.cursor() as cur:
-            # Всего задач
-            cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = %s;", (chat_id,))
-            total = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = ?;", (chat_id,))
+    total = cur.fetchone()[0]
 
-            # Выполненные задачи
-            cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = %s AND done = TRUE;", (chat_id,))
-            done = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM tasks WHERE chat_id = ? AND done = 1;", (chat_id,))
+    done = cur.fetchone()[0]
 
-            # Среднее в день
-            cur.execute(
-                "SELECT COUNT(*)::float / NULLIF(COUNT(DISTINCT due_date), 0) FROM tasks WHERE chat_id = %s;",
-                (chat_id,)
-            )
-            avg = cur.fetchone()[0] or 0
+    cur.execute("SELECT COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT due_date), 0) FROM tasks WHERE chat_id = ?;", (chat_id,))
+    avg = cur.fetchone()[0] or 0
 
-            # День недели с наибольшим количеством задач
-            cur.execute(
-                "SELECT TO_CHAR(due_date, 'Day'), COUNT(*) FROM tasks WHERE chat_id = %s GROUP BY 1 ORDER BY 2 DESC LIMIT 1;",
-                (chat_id,)
-            )
-            max_day = cur.fetchone()
+    cur.execute("SELECT strftime('%w', due_date), COUNT(*) FROM tasks WHERE chat_id = ? GROUP BY 1 ORDER BY 2 DESC LIMIT 1;", (chat_id,))
+    max_day = cur.fetchone()
+
+    cur.close()
+    conn.close()
 
     text = f"📊 Задачи всего: {total}\n✅ Выполнено: {done}\n📆 Среднее в день: {avg:.2f}"
     if max_day:
-        text += f"\n📈 Самый загруженный день: {max_day[0].strip()} ({max_day[1]} задач)"
+        days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+        text += f"\n📈 Самый загруженный день: {days[int(max_day[0])]} ({max_day[1]} задач)"
     return text
 
-
-def get_currency_history_chart():  # график курса USD/EUR
+def get_currency_history_chart():
     os.makedirs("charts", exist_ok=True)
     end_date = date.today()
     start_date = end_date - timedelta(days=6)
@@ -129,6 +106,7 @@ def get_currency_history_chart():  # график курса USD/EUR
         data_eur = resp_eur.json()
         eur_rates.append(data_eur["rates"]["RUB"])
         dates.append(d_str)
+
     plt.figure(figsize=(8, 5))
     plt.plot(dates, usd_rates, label="USD->RUB", marker='o')
     plt.plot(dates, eur_rates, label="EUR->RUB", marker='o')
