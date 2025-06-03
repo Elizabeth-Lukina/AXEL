@@ -14,8 +14,8 @@ def register_handlers(bot):
         btn4 = types.KeyboardButton("Добавить дело")
         markup.add(btn1, btn2, btn3, btn4, )
         chat_id = message.chat.id
-        if not log_usage(chat_id):
-            bot.send_message(message.chat.id, "Привет ✌ Я твой личный ассистент! Напиши город откуда ты.")
+        if not user_exists(chat_id):
+            bot.send_message(message.chat.id, "Привет ✌ Я твой личный ассистент! Напиши город откуда ты", reply_markup=markup)
             set_state(chat_id, "awaiting_city")
         else:
             bot.send_message(chat_id,
@@ -53,8 +53,8 @@ def register_handlers(bot):
         weather = get_weather(message.text)
         bot.send_message(message.chat.id, weather)
 
-    @bot.message_handler(commands=['my_stats'])
-    def my_stats(message):
-        log_usage(message.chat.id, '/my_stats')
-        stats_text = get_task_stats(message.chat.id)
-        bot.send_message(message.chat.id, stats_text)
+    # @bot.message_handler(commands=['my_stats'])
+    # def my_stats(message):
+    #     log_usage(message.chat.id, '/my_stats')
+    #     stats_text = get_task_stats(message.chat.id)
+    #     bot.send_message(message.chat.id, stats_text)

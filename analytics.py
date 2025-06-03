@@ -142,7 +142,3 @@ def get_currency_history_chart():  # график курса USD/EUR
     plt.savefig(chart_path)
     plt.close()
     return chart_path
-
-
-# Инициализация БД
-init_db()
