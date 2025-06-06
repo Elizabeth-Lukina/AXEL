@@ -1,4 +1,5 @@
 from telebot import types
+from ai_module import ai_reply
 
 from daily_report import schedule_report_for_user
 from quote import get_quote
@@ -83,25 +84,39 @@ def register_handlers(bot):
 
     @bot.message_handler(content_types=["text"])
     def text_handler(message):
-        text = message.text.lower()
+        text = message.text.strip()
         chat_id = message.chat.id
+        print(f"[DEBUG] message.text = {repr(text)}")
 
         actions = {
-            "погода": lambda: (set_state(chat_id, "awaiting_weather_city"), bot.send_message(chat_id, "Введи город:")),
-            "мысль дня": lambda: bot.send_message(chat_id, get_quote(), reply_markup=get_main_menu()),
-            "курс валют": lambda: bot.send_message(chat_id, get_currency(), reply_markup=get_main_menu()),
-            "добавить дело": lambda: bot.send_message(chat_id, "Функция добавления дел в разработке 🚰",
-                                                      reply_markup=get_main_menu()),
-            "изменить время рассылки": lambda: (set_state(chat_id, "awaiting_time"),
-                                                bot.send_message(chat_id, "Введи время в формате ЧЧ:ММ",
-                                                                 reply_markup=get_main_menu())),
-            "обратная связь": lambda: (set_state(chat_id, "awaiting_feedback"),
-                                       bot.send_message(chat_id,
-                                                        "✉ Напиши, что бы ты хотел улучшить в боте. Я обязательно прочитаю!")
-                                       )
+            "🌤 Погода": lambda: (set_state(chat_id, "awaiting_weather_city"),
+                                 bot.send_message(chat_id, "Введи город:")),
+            "🧠 Мысль дня": lambda: bot.send_message(chat_id, get_quote(), reply_markup=get_main_menu()),
+            "💱 Курс валют": lambda: bot.send_message(chat_id, get_currency(), reply_markup=get_main_menu()),
+            "📝 Добавить дело": lambda: bot.send_message(chat_id, "Функция добавления дел в разработке 🚰",
+                                                        reply_markup=get_main_menu()),
+            "⏰ Время рассылки": lambda: (set_state(chat_id, "awaiting_time"),
+                                         bot.send_message(chat_id, "Введи время в формате ЧЧ:ММ",
+                                                          reply_markup=get_main_menu())),
+            "📬 Обратная связь": lambda: (set_state(chat_id, "awaiting_feedback"),
+                                         bot.send_message(chat_id,
+                                                          "✉ Напиши, что бы ты хотел улучшить в боте. Я обязательно прочитаю!"))
         }
+
+        if get_state(chat_id) == "awaiting_feedback":
+            # Если пользователь вводит текст для обратной связи
+            clear_state(chat_id)
+            username = message.from_user.username or 'неизвестно'
+            bot.send_message(chat_id, "Спасибо за идею! Я передал её разработчику")
+            save_feedback(chat_id, username, text)
+            bot.send_message(ADMIN_CHAT_ID, f"Новая обратная связь от @{username} ({chat_id}):\n\n{text}")
+            return None
 
         if text in actions:
             actions[text]()
         else:
-            bot.send_message(chat_id, "Я тебя не понял. Выбери действие из меню", reply_markup=get_main_menu())
+            if get_state(chat_id) is None:
+                bot.send_chat_action(chat_id, 'typing')
+                answer = ai_reply(text)
+                bot.send_message(chat_id, answer, reply_markup=get_main_menu())
+

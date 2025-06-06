@@ -6,7 +6,7 @@ load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OWM_API_KEY = os.getenv("OWM_API_KEY")
 CUR_API_KEY = os.getenv("CUR_API_KEY")
-
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID")
 
 # PostgreSQL config
