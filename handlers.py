@@ -12,15 +12,18 @@ from database import save_user, user_exists, set_state, get_state, clear_state, 
 def register_handlers(bot):
     def get_main_menu():
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        buttons = [
-            types.KeyboardButton("Погода"),
-            types.KeyboardButton("Мысль дня"),
-            types.KeyboardButton("Курс валют"),
-            types.KeyboardButton("Добавить дело"),
-            types.KeyboardButton("Изменить время рассылки"),
-            types.KeyboardButton("Обратная связь")
-        ]
-        markup.add(*buttons)
+        markup.row(
+            types.KeyboardButton("🌤 Погода"),
+            types.KeyboardButton("💱 Курс валют")
+        )
+        markup.row(
+            types.KeyboardButton("🧠 Мысль дня"),
+            types.KeyboardButton("📝 Добавить дело")
+        )
+        markup.row(
+            types.KeyboardButton("⏰ Время рассылки"),
+            types.KeyboardButton("📬 Обратная связь")
+        )
         return markup
 
     @bot.message_handler(commands=["start"])
