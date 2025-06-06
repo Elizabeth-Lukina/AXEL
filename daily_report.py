@@ -21,25 +21,27 @@ scheduler.start()
 
 DB_PATH = "weatherbot.db"
 
+
 def connect():
     return sqlite3.connect(DB_PATH)
 
-def get_tasks(chat_id):
-    with connect() as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT task FROM tasks WHERE chat_id=? AND due_date=?", (chat_id, date.today()))
-        rows = cur.fetchall()
 
-    if not rows:
-        return "✅ На сегодня задач нет."
-    return "📋 Задачи на сегодня:\n" + "\n".join(f"— {row[0]}" for row in rows)
+# def get_tasks(chat_id):
+#     with connect() as conn:
+#         cur = conn.cursor()
+#         cur.execute("SELECT task FROM tasks WHERE chat_id=? AND due_date=?", (chat_id, date.today()))
+#         rows = cur.fetchall()
+#
+#     if not rows:
+#         return "✅ На сегодня задач нет."
+#     return "📋 Задачи на сегодня:\n" + "\n".join(f"— {row[0]}" for row in rows)
 
 def send_report(chat_id, city):
     try:
         parts = [
             get_weather(city),
             get_currency(),
-            get_tasks(chat_id),
+            # get_tasks(chat_id),
             get_quote()
         ]
         message = "\n\n".join(filter(None, parts))
@@ -48,10 +50,12 @@ def send_report(chat_id, city):
     except Exception as e:
         logger.error(f"❌ Ошибка отправки {chat_id}: {e}")
 
+
 def schedule_report_for_user(chat_id):
     with connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT city, send_hour, send_minute FROM users WHERE chat_id = ? AND daily_enabled = 1", (chat_id,))
+        cur.execute("SELECT city, send_hour, send_minute FROM users WHERE chat_id = ? AND daily_enabled = 1",
+                    (chat_id,))
         user = cur.fetchone()
 
     if user:
@@ -69,6 +73,7 @@ def schedule_report_for_user(chat_id):
             logger.info(f"[INFO] Обновлена рассылка для {chat_id} на {hour:02}:{minute:02}")
         except Exception as e:
             logger.error(f"Ошибка планирования отчета для {chat_id}: {e}")
+
 
 def schedule_reports():
     with connect() as conn:

@@ -8,7 +8,6 @@ def connect():
     return sqlite3.connect(DB_PATH)
 
 
-
 def init_db():
     with connect() as conn:
         cur = conn.cursor()
@@ -39,6 +38,14 @@ def init_db():
                 due_date DATE,
                 done BOOLEAN DEFAULT 0
             );
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                chat_id INTEGER,
+                username TEXT,
+                message TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);
         """)
         conn.commit()
         cur.close()
@@ -109,3 +116,13 @@ def update_user_time(chat_id, hour, minute):
 
 def clear_state(chat_id):
     set_state(chat_id, None)
+
+
+def save_feedback(chat_id, username, message):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO feedback (chat_id, username, message)
+            VALUES (?, ?, ?)
+        """, (chat_id, username, message))
+        conn.commit()
