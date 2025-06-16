@@ -1,17 +1,19 @@
-# Telegram Daily Assistant Bot 🤖
+# AXIOM 🤖
 
 A smart personal assistant Telegram bot written in Python. It sends users a daily digest every morning at 07:30 Moscow time (MSK) including:
 
-- 🌤 Current weather in their chosen city
-- 💱 Currency rates (USD and EUR to RUB)
+
 - 📋 Your to-do list for today
-- 🧠 A smart or funny quote of the day
-- 📈 Analytics and stats for the bot's usage
+- Daily digest via APScheduler:
+    - 🌤 Current weather in their chosen city
+    - 💱 Currency rates (USD and EUR to RUB)
+    - 🧠 A smart or funny quote of the day
+- 📈 Analytics 
 
 ## 💡 Features
 
 - Custom city selection per user
-- Daily digest at 07:30 (MSK) via APScheduler
+
 - PostgreSQL database: stores users, tasks, preferences
 - Weather from OpenWeatherMap API
 - Currency from exchangerate.host
