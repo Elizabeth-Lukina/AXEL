@@ -5,6 +5,7 @@ from config import TELEGRAM_TOKEN
 import telebot
 from apscheduler.schedulers.background import BackgroundScheduler
 import pytz
+from db.queries import get_tasks
 
 from quote import get_quote
 from weather import get_weather
@@ -26,22 +27,19 @@ def connect():
     return sqlite3.connect(DB_PATH)
 
 
-# def get_tasks(chat_id):
-#     with connect() as conn:
-#         cur = conn.cursor()
-#         cur.execute("SELECT task FROM tasks WHERE chat_id=? AND due_date=?", (chat_id, date.today()))
-#         rows = cur.fetchall()
-#
-#     if not rows:
-#         return "✅ На сегодня задач нет."
-#     return "📋 Задачи на сегодня:\n" + "\n".join(f"— {row[0]}" for row in rows)
+def format_tasks(chat_id):
+    tasks = get_tasks(chat_id)
+    if not tasks:
+        return "✅ На сегодня задач нет."
+    return "📋 Задачи на сегодня:\n" + "\n".join(f"– {t}" for t in tasks)
+
 
 def send_report(chat_id, city):
     try:
         parts = [
             get_weather(city),
             get_currency(),
-            # get_tasks(chat_id),
+            format_tasks(chat_id),
             get_quote()
         ]
         message = "\n\n".join(filter(None, parts))

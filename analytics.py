@@ -2,7 +2,7 @@ import os
 import matplotlib.pyplot as plt
 import requests
 from datetime import date, timedelta
-from database import connect
+from db.init_db import connect
 
 def get_task_stats(chat_id):
     conn = connect()
