@@ -1,54 +1,4 @@
-import sqlite3
-import os
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "weatherbot.db")
-
-
-def connect():
-    return sqlite3.connect(DB_PATH)
-
-
-def init_db():
-    with connect() as conn:
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS usage_log (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                chat_id INTEGER,
-                command TEXT,
-                extra TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                chat_id INTEGER PRIMARY KEY,
-                city TEXT DEFAULT 'Санкт-Петербург',
-                state TEXT,
-                daily_enabled BOOLEAN DEFAULT 1,
-                send_hour INTEGER DEFAULT 7,
-                send_minute INTEGER DEFAULT 30
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                chat_id INTEGER,
-                task TEXT,
-                due_date DATE,
-                done BOOLEAN DEFAULT 0
-            );
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS feedback (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                chat_id INTEGER,
-                username TEXT,
-                message TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);
-        """)
-        conn.commit()
-        cur.close()
+from db.init_db import connect
 
 
 def save_user(chat_id, city):
@@ -126,3 +76,17 @@ def save_feedback(chat_id, username, message):
             VALUES (?, ?, ?)
         """, (chat_id, username, message))
         conn.commit()
+
+
+def add_task(chat_id, task):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO tasks (chat_id, task) VALUES (?, ?)", (chat_id, task))
+        conn.commit()
+
+
+def get_tasks(chat_id):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT task FROM tasks WHERE chat_id = ? AND due_date = date('now')", (chat_id,))
+        return [row[0] for row in cur.fetchall()]
