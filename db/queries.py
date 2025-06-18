@@ -5,10 +5,10 @@ def save_user(chat_id, city):
     with connect() as conn:
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO users (chat_id, city)
-            VALUES (?, ?)
+            INSERT INTO users (chat_id, city, preferences)
+            VALUES (?, ?, ?)
             ON CONFLICT(chat_id) DO UPDATE SET city = excluded.city;
-        """, (chat_id, city))
+        """, (chat_id, city, ""))  # здесь "" — пустая строка для preferences
         conn.commit()
         cur.close()
 
@@ -90,3 +90,23 @@ def get_tasks(chat_id):
         cur = conn.cursor()
         cur.execute("SELECT task FROM tasks WHERE chat_id = ? AND due_date = date('now')", (chat_id,))
         return [row[0] for row in cur.fetchall()]
+
+
+def save_preferences(chat_id, prefs: list):
+    conn = connect()
+    c = conn.cursor()
+    prefs_str = ",".join(prefs)  # или json.dumps(prefs) для гибкости
+    c.execute("UPDATE users SET preferences = ? WHERE chat_id = ?", (prefs_str, chat_id))
+    conn.commit()
+    conn.close()
+
+
+def get_preferences(chat_id):
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT preferences FROM users WHERE chat_id = ?", (chat_id,))
+    row = c.fetchone()
+    conn.close()
+    if row and row[0]:
+        return row[0].split(",")  # или json.loads если сохраняешь JSON
+    return []

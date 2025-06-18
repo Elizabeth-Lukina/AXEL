@@ -1,7 +1,10 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "weatherbot.db")
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Абсолютный путь к папке db
+DB_PATH = os.path.join(BASE_DIR, "weatherbot.db")
 
 
 def connect():
@@ -23,6 +26,7 @@ def init_db():
         cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 chat_id INTEGER PRIMARY KEY,
+                preferences TEXT,
                 city TEXT DEFAULT 'Санкт-Петербург',
                 state TEXT,
                 daily_enabled BOOLEAN DEFAULT 1,
@@ -30,15 +34,7 @@ def init_db():
                 send_minute INTEGER DEFAULT 30
             );
         """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                chat_id INTEGER,
-                task TEXT,
-                due_date DATE,
-                done BOOLEAN DEFAULT 0
-            );
-        """)
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS feedback (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
