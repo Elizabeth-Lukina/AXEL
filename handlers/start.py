@@ -1,9 +1,9 @@
 from telebot import types
 
-from daily_report import schedule_report_for_user
+from services.daily_report import schedule_report_for_user
 from db.queries import user_exists, set_state, get_state, save_preferences, get_preferences, update_user_time, \
     clear_state
-from ui import get_main_menu
+from ui.ui import get_main_menu
 
 
 

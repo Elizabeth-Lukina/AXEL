@@ -39,7 +39,7 @@ def log_usage(chat_id, command, extra=None):
     cur.close()
     conn.close()
 def get_city_chart():
-    os.makedirs("charts", exist_ok=True)
+    os.makedirs("../charts", exist_ok=True)
     conn = connect()
     cur = conn.cursor()
 
@@ -59,7 +59,7 @@ def get_city_chart():
     plt.ylabel('Запросы')
     plt.tight_layout()
 
-    chart_path = os.path.join("charts", "top_cities.png")
+    chart_path = os.path.join("../charts", "top_cities.png")
     plt.savefig(chart_path)
     plt.close()
     return chart_path
@@ -90,7 +90,7 @@ def get_stats(chat_id):
     return text
 
 def get_currency_history_chart():
-    os.makedirs("charts", exist_ok=True)
+    os.makedirs("../charts", exist_ok=True)
     end_date = date.today()
     start_date = end_date - timedelta(days=6)
     dates = []
@@ -116,7 +116,7 @@ def get_currency_history_chart():
     plt.xticks(rotation=45)
     plt.legend()
     plt.tight_layout()
-    chart_path = os.path.join("charts", "currency_history.png")
+    chart_path = os.path.join("../charts", "currency_history.png")
     plt.savefig(chart_path)
     plt.close()
     return chart_path

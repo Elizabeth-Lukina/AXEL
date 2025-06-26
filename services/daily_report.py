@@ -4,9 +4,9 @@ import pytz
 
 from db.init_db import connect
 from db.queries import get_tasks, get_preferences
-from quote import get_quote
-from weather import get_weather
-from currency import get_currency
+from services.quote import get_quote
+from services.weather import get_weather
+from services.currency import get_currency
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("daily_report")

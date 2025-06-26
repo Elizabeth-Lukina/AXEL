@@ -1,15 +1,12 @@
 from telebot import types
-from ai_module import ai_reply
-from daily_report import schedule_reports
+from services.daily_report import schedule_reports
 
 # from daily_report import schedule_report_for_user
-from quote import get_quote
-from weather import get_weather
-from currency import get_currency
+from services.quote import get_quote
+from services.weather import get_weather
+from services.currency import get_currency
 from config import ADMIN_CHAT_ID
-from analytics import log_usage, get_stats, get_city_chart
-from db.queries import save_user, user_exists, set_state, get_state, clear_state, update_user_time, connect, \
-    save_feedback
+from db.queries import save_user, set_state, get_state, clear_state, update_user_time, save_feedback
 
 
 def register_handlers(bot):
