@@ -1,7 +1,8 @@
 from telebot import types
 from ai_module import ai_reply
+from daily_report import schedule_reports
 
-from daily_report import schedule_report_for_user
+# from daily_report import schedule_report_for_user
 from quote import get_quote
 from weather import get_weather
 from currency import get_currency
@@ -54,7 +55,7 @@ def register_handlers(bot):
                 update_user_time(message.chat.id, hour, minute)
 
                 clear_state(message.chat.id)
-                schedule_report_for_user(message.chat.id)
+                schedule_reports(message.chat.id)
                 bot.send_message(message.chat.id, f"Готово! Сводка теперь будет приходить в {hour:02}:{minute:02}.",
                                  reply_markup=get_main_menu())
             else:

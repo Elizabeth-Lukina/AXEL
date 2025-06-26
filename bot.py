@@ -14,7 +14,7 @@ register_handlers_start(bot)
 register_handlers(bot)
 
 # 3. Затем расписание (и только один раз!)
-# schedule_reports()
+schedule_reports(bot)
 
 if __name__ == "__main__":
     print("Бот запущен...")

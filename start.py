@@ -6,11 +6,12 @@ from db.queries import user_exists, set_state, get_state, save_preferences, get_
 from ui import get_main_menu
 
 
+
 def register_handlers_start(bot):
     @bot.message_handler(commands=["start"])
     def start(message):
         chat_id = message.chat.id
-        print(f"[DEBUG] /start received from {chat_id}")
+        # print(f"[DEBUG] /start received from {chat_id}")
         username = message.from_user.username or 'неизвестно'
         if not user_exists(chat_id):
 
@@ -22,7 +23,7 @@ def register_handlers_start(bot):
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
             markup.add("Да", "Нет")
             bot.send_message(message.chat.id, "Хочешь получать утреннюю рассылку?", reply_markup=markup)
-            set_state(chat_id, "awaiting_subscription_items")
+            set_state(chat_id, "awaiting_subscription_choice")
 
 
         else:
@@ -34,7 +35,6 @@ def register_handlers_start(bot):
         text = message.text
 
         if text == "Да":
-
             # Предлагаем выбрать пункты подписки
             valid_items = {"Погода", "Курс валют", "Мысль дня"}
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -43,13 +43,13 @@ def register_handlers_start(bot):
             markup.add("Готово")
 
             bot.send_message(chat_id, "Выбери, что хочешь получать в рассылке:", reply_markup=markup)
-            set_state(chat_id, "choosing_subscription_items")
+            set_state(chat_id, "awaiting_subscription_items")
 
         elif text == "Нет":
             save_preferences(chat_id, [])
-            bot.send_message(chat_id, "Понял, рассылка не будет настроена.", reply_markup=types.ReplyKeyboardRemove())
-            set_state(chat_id, None)
-            bot.send_message(chat_id, "Чем займемся?", reply_markup=get_main_menu())
+            bot.send_message(chat_id, "Понял, значит не хочешь", reply_markup=types.ReplyKeyboardRemove())
+            clear_state(chat_id)
+            bot.send_message(chat_id, "Тогда, чем займемся?", reply_markup=get_main_menu())
 
         else:
             bot.send_message(chat_id, "Пожалуйста, выбери «Да» или «Нет».")
@@ -60,9 +60,11 @@ def register_handlers_start(bot):
         text = message.text
 
         valid_items = {"Погода", "Курс валют", "Мысль дня"}
-        prefs = get_preferences(chat_id) or []
+        prefs = get_preferences(chat_id)
+        if prefs is None:
+            prefs = []
 
-        # Создаем клавиатуру с кнопками выбора
+        # Клавиатура
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         for item in valid_items:
             markup.add(item)
@@ -96,11 +98,11 @@ def register_handlers_start(bot):
                 update_user_time(message.chat.id, hour, minute)
 
                 clear_state(message.chat.id)
-                schedule_report_for_user(message.chat.id)
+                schedule_report_for_user(bot, message.chat.id)
                 bot.send_message(message.chat.id, f"Готово! Сводка теперь будет приходить в {hour:02}:{minute:02}.",
                                  reply_markup=get_main_menu())
             else:
                 raise ValueError
-        except:
+        except ValueError:
             bot.send_message(message.chat.id, "Неверный формат времени. Попробуй снова, например 07:30",
                              reply_markup=get_main_menu())
