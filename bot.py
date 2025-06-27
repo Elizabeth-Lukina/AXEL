@@ -1,7 +1,7 @@
 import telebot
 from config import TELEGRAM_TOKEN
-from handlers.handlers import register_handlers
 from db.init_db import init_db
+from handlers.init_handlers import register_handlers
 from services.daily_report import schedule_reports  # импортируем, но вызываем вручную
 from handlers.start import register_handlers_start
 

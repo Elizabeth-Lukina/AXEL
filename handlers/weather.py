@@ -17,4 +17,4 @@ def register_weather_handlers(bot, get_main_menu):
     def handle_weather_city(message):
         weather = get_weather(message.text)
         clear_state(message.chat.id)
-        bot.send_message(message.chat_id, weather, reply_markup=get_main_menu())
+        bot.send_message(message.chat.id, weather, reply_markup=get_main_menu())
