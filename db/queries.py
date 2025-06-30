@@ -88,8 +88,9 @@ def add_task(chat_id, task):
 def get_tasks(chat_id):
     with connect() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT task FROM tasks WHERE chat_id = ? AND due_date = date('now')", (chat_id,))
+        cur.execute("SELECT task FROM tasks WHERE chat_id = ?", (chat_id,))
         return [row[0] for row in cur.fetchall()]
+
 
 
 def save_preferences(chat_id, prefs: list):

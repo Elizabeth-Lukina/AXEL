@@ -1,8 +1,9 @@
 from telebot import types
-from db.queries import get_state, set_state
+from db.queries import get_state, set_state, add_task
 from services.currency import get_currency
 from services.quote import get_quote
 from ui.ui import get_main_menu
+# from handlers.tasks import add_task_start
 
 
 def register_main_menu_handlers(bot):
@@ -23,8 +24,12 @@ def register_main_menu_handlers(bot):
                                  bot.send_message(chat_id, "Введи город:")),
             "💱 Курс валют": lambda: bot.send_message(chat_id, get_currency(), reply_markup=get_main_menu()),
             "🧠 Мысль дня": lambda: bot.send_message(chat_id, get_quote(), reply_markup=get_main_menu()),
-            "📝 Добавить дело": lambda: bot.send_message(chat_id, "Функция добавления дел в разработке 🚰",
-                                                        reply_markup=get_main_menu()),
+            "📝 Добавить дело": lambda: (
+                set_state(chat_id, "awaiting_task_text"),
+                bot.send_message(chat_id, "✍️ Введи текст задачи, которую хочешь добавить:",
+                                 reply_markup=types.ReplyKeyboardRemove())
+            ),
+
             "⏰ Время рассылки": lambda: (set_state(chat_id, "awaiting_time"),
                                          bot.send_message(chat_id, "Введи время в формате ЧЧ:ММ",
                                                           reply_markup=get_main_menu())),
