@@ -84,7 +84,7 @@ def schedule_reports(bot):
                 trigger="cron",
                 hour=hour,
                 minute=minute,
-                args=[bot, chat_id, city],
+                args=[chat_id, city],
                 id=f"report_{chat_id}",
                 replace_existing=True
             )
