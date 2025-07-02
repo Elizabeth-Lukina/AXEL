@@ -60,7 +60,7 @@ def schedule_report_for_user(bot, chat_id):
                 trigger="cron",
                 hour=hour,
                 minute=minute,
-                args=[bot, chat_id, city],
+                args=[bot, chat_id, city],  # Передаем bot, chat_id и city
                 id=f"report_{chat_id}",
                 replace_existing=True
             )
@@ -84,7 +84,7 @@ def schedule_reports(bot):
                 trigger="cron",
                 hour=hour,
                 minute=minute,
-                args=[chat_id, city],
+                args=[bot, chat_id, city],  # Передаем bot, chat_id и city
                 id=f"report_{chat_id}",
                 replace_existing=True
             )
