@@ -10,6 +10,7 @@ init_db()
 
 # 2. Затем бот
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
+bot.set_webhook()
 register_handlers_start(bot)
 register_handlers(bot)
 

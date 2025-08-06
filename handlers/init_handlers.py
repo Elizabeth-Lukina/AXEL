@@ -4,6 +4,7 @@ from handlers.schedule import register_schedule_handlers
 from handlers.tasks import register_task_handlers
 from handlers.weather import register_weather_handlers
 from handlers.main_menu import register_main_menu_handlers, get_main_menu
+from nlp.parser import parse_intent
 
 
 def register_handlers(bot):
@@ -12,5 +13,5 @@ def register_handlers(bot):
     register_schedule_handlers(bot, get_main_menu)
     register_weather_handlers(bot, get_main_menu)
 
-    register_task_handlers(bot)
+    register_task_handlers(bot, parse_intent)
     register_main_menu_handlers(bot)

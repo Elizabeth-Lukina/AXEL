@@ -50,8 +50,9 @@ def init_db():
                 chat_id INTEGER,
                 task TEXT NOT NULL,
                 due_date DATE DEFAULT CURRENT_DATE,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                intent TEXT);
+
         """)
 
         conn.commit()
