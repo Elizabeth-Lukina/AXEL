@@ -1,4 +1,5 @@
 from handlers.feedback import register_feedback_handlers
+from handlers.games import register_game_handlers
 from handlers.quote import register_quote_handlers
 from handlers.schedule import register_schedule_handlers
 from handlers.tasks import register_task_handlers
@@ -14,4 +15,6 @@ def register_handlers(bot):
     register_weather_handlers(bot, get_main_menu)
 
     register_task_handlers(bot, parse_intent)
+
+    register_game_handlers(bot, get_main_menu)
     register_main_menu_handlers(bot)
