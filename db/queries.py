@@ -68,24 +68,24 @@ def save_feedback(chat_id, username, message):
         conn.commit()
 
 
-def add_task(chat_id, task, intent=None):
+from datetime import datetime
+from db.init_db import connect
+
+
+def add_task(chat_id, task, intent=None, due_date=None):
     with connect() as conn:
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO tasks (chat_id, task, intent) VALUES (?, ?, ?)",
-            (chat_id, task, intent)
+            """
+            INSERT INTO tasks (chat_id, task, intent, due_date)
+            VALUES (?, ?, ?, ?)
+            """,
+            (chat_id, task, intent, due_date.date() if due_date else None)
         )
         conn.commit()
 
 
-def get_tasks(chat_id):
-    with connect() as conn:
-        cur = conn.cursor()
-        cur.execute("SELECT task FROM tasks WHERE chat_id = ?", (chat_id,))
-        return [row[0] for row in cur.fetchall()]
-
-
-def delete_task_by_text(chat_id: int, text: str) -> bool:
+def delete_task(chat_id: int, text: str) -> bool:
     with connect() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -96,7 +96,7 @@ def delete_task_by_text(chat_id: int, text: str) -> bool:
         return cur.rowcount > 0
 
 
-def reschedule_task_by_text(chat_id: int, text: str, new_date: datetime) -> bool:
+def reschedule_task(chat_id: int, text: str, new_date: datetime) -> bool:
     with connect() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -107,16 +107,38 @@ def reschedule_task_by_text(chat_id: int, text: str, new_date: datetime) -> bool
         return cur.rowcount > 0
 
 
+def get_tasks(chat_id):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, task, created_at, due_date, is_done
+            FROM tasks
+            WHERE chat_id = ?
+            ORDER BY due_date IS NULL, due_date
+        """, (chat_id,))
+        return cur.fetchall()
+
+
+
 def get_tasks_by_date(chat_id: int, date: datetime):
     with connect() as conn:
         cur = conn.cursor()
         date_str = date.date().isoformat()
         cur.execute(
-            "SELECT rowid, task, due_date FROM tasks WHERE chat_id = ? AND date(due_date) = ? ORDER BY due_date ASC",
+            "SELECT task FROM tasks WHERE chat_id = ? AND date(due_date) = ? ORDER BY due_date ASC",
             (chat_id, date_str)
         )
-        rows = cur.fetchall()
-        return [{"id": row[0], "task": row[1], "due_date": row[2]} for row in rows]
+        return [row[0] for row in cur.fetchall()]
+
+def mark_done(chat_id, task_id):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE tasks SET is_done = 1 WHERE chat_id = ? AND id = ?
+        """, (chat_id, task_id))
+        conn.commit()
+        return cur.rowcount > 0
+
 
 
 def save_preferences(chat_id, prefs: list):

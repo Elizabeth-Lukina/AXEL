@@ -48,10 +48,11 @@ def init_db():
             CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 chat_id INTEGER,
-                task TEXT NOT NULL,
-                due_date DATE DEFAULT CURRENT_DATE,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                intent TEXT);
+                task TEXT,
+                intent TEXT,
+                due_date TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                is_done INTEGER DEFAULT 0);
 
         """)
 

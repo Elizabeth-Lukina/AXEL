@@ -1,40 +1,45 @@
-import re
+import spacy
 import dateparser
 
-def parse_intent(text):
-    text = text.lower().strip()
+nlp = spacy.load("ru_core_news_md")
 
-    # Удалить задачу
-    match = re.search(r"удали(ть)? задачу (.+)", text)
-    if match:
-        return {"intent": "delete", "task": match.group(2)}
+INTENT_KEYWORDS = {
+    "add_task": ["добавь", "создай", "напомни"],
+    "delete_task": ["удали", "убери", "отмени"],
+    "reschedule_task": ["перенеси"],
+    "list_tasks": ["покажи", "какие задачи", "что у меня"],
+    "mark_done": ["выполнил", "готово", "сделано", "выполнено"]
+}
 
-    # Перенести задачу
-    match = re.search(r"перенеси(ть)? задачу(?: (.+?))? на (.+)", text)
-    if match:
-        return {
-            "intent": "reschedule",
-            "task": match.group(2),
-            "date": dateparser.parse(match.group(3))
-        }
 
-    # Добавить задачу
-    match = re.search(r"(добавь|напомни|создай) (?:мне )?задачу (.+)", text)
-    if match:
-        parsed_date = dateparser.parse(text)
-        return {
-            "intent": "add",
-            "task": match.group(2),
-            "date": parsed_date
-        }
+def parse_intent(text: str) -> dict:
+    doc = nlp(text.lower())
+    intent = "unknown"
+    task_text = ""
+    dt = dateparser.parse(text, settings={"PREFER_DATES_FROM": "future"})
 
-    # Показать задачи
-    match = re.search(r"(что у меня|какие задачи|покажи задачи)(.*)", text)
-    if match:
-        parsed_date = dateparser.parse(text)
-        return {
-            "intent": "list",
-            "date": parsed_date
-        }
+    for token in doc:
+        for key, keywords in INTENT_KEYWORDS.items():
+            if token.lemma_ in keywords:
+                intent = key
+                break
+        if intent != "unknown":
+            break
+
+    if intent in ("add_task", "delete_task", "reschedule_task"):
+        for i, token in enumerate(doc):
+            if token.lemma_ in INTENT_KEYWORDS[intent]:
+                task_text = doc[i + 1:].text.strip()
+                break
+        task_text = task_text.replace("задачу", "").strip()
+
+    if intent == "add_task":
+        return {"intent": "add_task", "task": task_text, "date": dt}
+    elif intent == "delete_task":
+        return {"intent": "delete_task", "task": task_text, "date": dt}
+    elif intent == "reschedule_task":
+        return {"intent": "reschedule_task", "task": task_text, "date": dt}
+    elif intent == "list_tasks":
+        return {"intent": "list_tasks", "date": dt}
 
     return {"intent": "unknown"}
