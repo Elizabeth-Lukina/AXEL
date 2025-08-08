@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from db.init_db import connect
 
 
@@ -68,74 +67,91 @@ def save_feedback(chat_id, username, message):
         conn.commit()
 
 
-from datetime import datetime
-from db.init_db import connect
-
-
 def add_task(chat_id, task, intent=None, due_date=None):
     with connect() as conn:
         cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO tasks (chat_id, task, intent, due_date)
-            VALUES (?, ?, ?, ?)
-            """,
-            (chat_id, task, intent, due_date.date() if due_date else None)
-        )
+        cur.execute("""
+            INSERT INTO tasks (chat_id, task, intent, created_at, due_date, is_done)
+            VALUES (?, ?, ?, ?, ?, 0)
+        """, (
+            chat_id,
+            task,
+            intent,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            due_date.strftime("%Y-%m-%d") if due_date else None
+        ))
         conn.commit()
 
 
-def delete_task(chat_id: int, text: str) -> bool:
+def delete_task(chat_id, text_or_id):
+    """Удаляет по id (число) или по фрагменту текста"""
     with connect() as conn:
         cur = conn.cursor()
-        cur.execute(
-            "DELETE FROM tasks WHERE chat_id = ? AND task LIKE ?",
-            (chat_id, f"%{text}%")
-        )
+        if text_or_id.isdigit():
+            cur.execute("DELETE FROM tasks WHERE chat_id = ? AND id = ?", (chat_id, int(text_or_id)))
+        else:
+            cur.execute("DELETE FROM tasks WHERE chat_id = ? AND task LIKE ?", (chat_id, f"%{text_or_id}%"))
         conn.commit()
         return cur.rowcount > 0
 
 
-def reschedule_task(chat_id: int, text: str, new_date: datetime) -> bool:
+def reschedule_task(chat_id, text_or_id, new_date: datetime):
     with connect() as conn:
         cur = conn.cursor()
-        cur.execute(
-            "UPDATE tasks SET due_date = ? WHERE chat_id = ? AND task LIKE ?",
-            (new_date.date(), chat_id, f"%{text}%")
-        )
+        if text_or_id.isdigit():
+            cur.execute(
+                "UPDATE tasks SET due_date = ? WHERE chat_id = ? AND id = ?",
+                (new_date.strftime("%Y-%m-%d"), chat_id, int(text_or_id))
+            )
+        else:
+            cur.execute(
+                "UPDATE tasks SET due_date = ? WHERE chat_id = ? AND task LIKE ?",
+                (new_date.strftime("%Y-%m-%d"), chat_id, f"%{text_or_id}%")
+            )
         conn.commit()
         return cur.rowcount > 0
 
 
 def get_tasks(chat_id):
+    """Возвращает все задачи с полями для таблицы"""
     with connect() as conn:
         cur = conn.cursor()
         cur.execute("""
             SELECT id, task, created_at, due_date, is_done
             FROM tasks
             WHERE chat_id = ?
-            ORDER BY due_date IS NULL, due_date
+            ORDER BY is_done ASC, due_date ASC NULLS LAST, created_at DESC
         """, (chat_id,))
         return cur.fetchall()
 
 
-
-def get_tasks_by_date(chat_id: int, date: datetime):
+def mark_task_completed(chat_id, task_id):
     with connect() as conn:
         cur = conn.cursor()
-        date_str = date.date().isoformat()
-        cur.execute(
-            "SELECT task FROM tasks WHERE chat_id = ? AND date(due_date) = ? ORDER BY due_date ASC",
-            (chat_id, date_str)
-        )
-        return [row[0] for row in cur.fetchall()]
+        cur.execute("UPDATE tasks SET is_done = 1 WHERE chat_id = ? AND id = ?", (chat_id, task_id))
+        conn.commit()
+        return cur.rowcount > 0
 
-def mark_done(chat_id, task_id):
+
+def get_tasks_by_date(chat_id, date: datetime):
     with connect() as conn:
         cur = conn.cursor()
+        date_str = date.strftime("%Y-%m-%d")
         cur.execute("""
-            UPDATE tasks SET is_done = 1 WHERE chat_id = ? AND id = ?
-        """, (chat_id, task_id))
+            SELECT id, task, created_at, due_date, is_done
+            FROM tasks
+            WHERE chat_id = ? AND date(due_date) = ?
+            ORDER BY is_done ASC, due_date ASC
+        """, (chat_id, date_str))
+        return cur.fetchall()
+
+def complete_task(chat_id: int, text: str) -> bool:
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE tasks SET is_done = 1 WHERE chat_id = ? AND task LIKE ?",
+            (chat_id, f"%{text}%")
+        )
         conn.commit()
         return cur.rowcount > 0
 
