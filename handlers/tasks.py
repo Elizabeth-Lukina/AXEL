@@ -95,7 +95,7 @@ def register_task_handlers(bot, parse_intent):
             status = "✅" if is_done else "❌"
             created_str = created_at.split(" ")[0] if created_at else "—"
             due_str = due_date if due_date else "—"
-            rows.append([task_id, task_text[:20], created_str, due_str, status])
+            rows.append([task_id, task_text[:30], created_str, due_str, status])
 
         table_text = tabulate(rows, headers, tablefmt="plain", stralign="center")
 
