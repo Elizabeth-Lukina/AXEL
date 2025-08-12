@@ -6,7 +6,7 @@ def get_main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("🌤 Погода", "💱 Курс валют")
     markup.add("🧠 Мысль дня", "⏰ Время рассылки")
-    markup.add("📋 Мои задачи", "🎲 Поиграем?")
+    markup.add("📋 Планировщик", "🎲 Поиграем?")
     markup.add("📬 Обратная связь")
     return markup
 

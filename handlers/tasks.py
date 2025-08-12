@@ -8,7 +8,7 @@ from tabulate import tabulate
 
 
 def register_task_handlers(bot, parse_intent):
-    @bot.message_handler(func=lambda m: m.text == "📋 Мои задачи")
+    @bot.message_handler(func=lambda m: m.text == "📋 Планировщик")
     def enter_task_mode(message):
         chat_id = message.chat.id
         set_state(chat_id, "awaiting_task_text")
@@ -78,7 +78,7 @@ def register_task_handlers(bot, parse_intent):
         else:
             bot.answer_callback_query(call.id, "⚠️ Не удалось удалить задачу.")
 
-
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("list_tasks"))
     def send_task_list(bot, chat_id, edit=False, message_id=None):
         tasks = get_tasks(chat_id)
         if not tasks:
