@@ -1,4 +1,3 @@
-# nlp_parser.py
 import re
 import spacy
 from dateparser.search import search_dates
@@ -70,21 +69,12 @@ def clean_task_text(text: str, intent: str) -> str:
 
 
 def parse_intent(text: str) -> dict:
-    """
-    Возвращает dict:
-    {
-      "intent": "<add_task|delete_task|reschedule_task|list_tasks|complete_task|unknown>",
-      "task": "<чистый текст задачи или None>",
-      "date": <datetime or None>,
-      "date_substring": "<подстрока, найденная dateparser'ом или None>"
-    }
-    """
     original = text.strip()
     norm = normalize_time_format(original)
     doc = nlp(norm)
     intent = "unknown"
 
-    # найти intent по леммам токенов
+    # 1. Определяем intent по ключевым словам
     for token in doc:
         for key, kws in INTENT_KEYWORDS.items():
             if token.lemma_ in kws:
@@ -93,31 +83,39 @@ def parse_intent(text: str) -> dict:
         if intent != "unknown":
             break
 
-    # попробовать найти дату/подстроку
+    # 2. Ищем дату/время
     date_substring = None
     date_obj = None
+
     try:
         res = search_dates(norm, languages=["ru"])
     except Exception:
         res = None
 
     if res:
-        # берем последний матч
-        match_str, date_obj = res[-1]
+        # Ищем именно дату с временем, иначе берём первую попавшуюся дату
+        dt_with_time = [(m, d) for m, d in res if d.hour != 0 or d.minute != 0]
+        if dt_with_time:
+            match_str, date_obj = dt_with_time[-1]
+        else:
+            match_str, date_obj = res[-1]
         date_substring = match_str
     else:
-        # fallback
         try:
             date_obj = dp_parse(norm, languages=["ru"])
-            # если parse нашёл неявно — date_substring не известна -> None
         except Exception:
             date_obj = None
 
-    # очищаем текст задачи от триггеров и найденной подстроки даты
+    # 3. Если intent не определён, но есть дата → считаем add_task
+    if intent == "unknown" and date_obj:
+        intent = "add_task"
+
+    # 4. Удаляем подстроку даты
     text_wo_date = norm
     if date_substring:
-        text_wo_date = text_wo_date.replace(date_substring, " ")
+        text_wo_date = re.sub(re.escape(date_substring), " ", text_wo_date, flags=re.IGNORECASE)
 
+    # 5. Чистим текст задачи
     task_text = clean_task_text(text_wo_date, intent)
 
     return {
@@ -128,15 +126,12 @@ def parse_intent(text: str) -> dict:
     }
 
 
+
 # Тест (локально)
 if __name__ == "__main__":
     tests = [
         "добавь купить капусту завтра в 10.40 утра",
-        "напомни позвонить маме через 2 часа",
-        "удали задачу купить хлеб",
-        "перенеси встречу на пятницу в 15:00",
-        "покажи список задач на завтра",
-        "выполнил купить капусту"
+        "напомни позвонить маме через 2 часа"
     ]
     for t in tests:
         print(t, "->", parse_intent(t))

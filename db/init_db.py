@@ -4,7 +4,7 @@ import os
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Абсолютный путь к папке db
-DB_PATH = os.path.join(BASE_DIR, "weatherbot.db")
+DB_PATH = os.path.join(BASE_DIR, "users.db")
 
 
 def connect():
