@@ -13,7 +13,7 @@ def register_handlers_start(bot):
         username = message.from_user.username or 'неизвестно'
         if not user_exists(chat_id):
             bot.send_message(chat_id, f" ✌ Йоу, йоу, йоу! Привет, {username}!\n"
-                                      f"Я твой личный ассистент — AXIOM!\n"
+                                      f"Я твой личный ассистент — AXEL!\n"
                                       f"Точнее пока только учусь им быть, но постараюсь быть уже полезным.")
 
             bot.send_message(chat_id, "Хочешь получать утреннюю рассылку?", reply_markup=get_yes_no_keyboard())
