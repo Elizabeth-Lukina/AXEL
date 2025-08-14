@@ -1,4 +1,3 @@
-# ui/ui.py
 from telebot import types
 
 
@@ -23,4 +22,9 @@ def get_subscription_items_keyboard():
     for item in valid_items:
         markup.add(item)
     markup.add("✅ Готово")
+    return markup
+
+def get_menu_tasks():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("📅 Задачи на сегодня", "🔙 Назад в главное меню")
     return markup

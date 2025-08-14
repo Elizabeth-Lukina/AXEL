@@ -5,20 +5,38 @@ from db.queries import (
 )
 from db.queries import set_state, get_state, clear_state
 from tabulate import tabulate
+from ui.ui import get_menu_tasks, get_main_menu
 
 
 def register_task_handlers(bot, parse_intent):
+
     @bot.message_handler(func=lambda m: m.text == "📋 Планировщик")
     def enter_task_mode(message):
         chat_id = message.chat.id
-        set_state(chat_id, "awaiting_task_text")
-        bot.send_message(chat_id, "Ты находишься в режиме планирования задач. Что будем делать?")
+        set_state(chat_id, "planner")
+        bot.send_message(
+            chat_id,
+            "Ты в режиме планировщика. Можешь написать задачу или выбрать кнопку.",
+            reply_markup=get_menu_tasks()
+        )
 
-    @bot.message_handler(func=lambda m: get_state(m.chat.id) == "awaiting_task_text")
+    @bot.message_handler(func=lambda m: get_state(m.chat.id) == "planner")
     def handle_task_commands(message):
         chat_id = message.chat.id
         user_text = message.text.strip()
 
+        # Назад в главное меню
+        if user_text == "🔙 Назад в главное меню":
+            clear_state(chat_id)
+            bot.send_message(chat_id, "Возвращаемся в главное меню.", reply_markup=get_main_menu())
+            return
+
+        # Задачи на сегодня
+        if user_text == "📅 Задачи на сегодня":
+            send_task_list(bot, chat_id, today_only=True)
+            return
+
+        # Обработка как команды
         try:
             result = parse_intent(user_text)
             intent = result.get("intent")
@@ -53,9 +71,6 @@ def register_task_handlers(bot, parse_intent):
             print(f"[ERROR] {e}")
             bot.send_message(chat_id, "Ошибка при обработке команды.")
 
-        finally:
-            clear_state(chat_id)
-
     @bot.callback_query_handler(func=lambda call: call.data.startswith("complete:"))
     def handle_complete_task(call):
         task_id = int(call.data.split(":")[1])
@@ -78,14 +93,14 @@ def register_task_handlers(bot, parse_intent):
         else:
             bot.answer_callback_query(call.id, "⚠️ Не удалось удалить задачу.")
 
-    @bot.callback_query_handler(func=lambda call: call.data.startswith("list_tasks"))
-    def send_task_list(bot, chat_id, edit=False, message_id=None):
+    def send_task_list(bot, chat_id, edit=False, message_id=None, today_only=False):
         tasks = get_tasks(chat_id)
         if not tasks:
+            text = "📭 У тебя пока нет задач." if not today_only else "📭 На сегодня задач нет."
             if edit:
-                bot.edit_message_text("📭 У тебя пока нет задач.", chat_id, message_id)
+                bot.edit_message_text(text, chat_id, message_id)
             else:
-                bot.send_message(chat_id, "📭 У тебя пока нет задач.")
+                bot.send_message(chat_id, text)
             return
 
         # Формируем таблицу
@@ -98,15 +113,16 @@ def register_task_handlers(bot, parse_intent):
             rows.append([task_id, task_text[:30], created_str, due_str, status])
 
         table_text = tabulate(rows, headers, tablefmt="plain", stralign="center")
-
         text = "📋 *Твои задачи:*\n```\n" + table_text + "\n```"
 
         markup = types.InlineKeyboardMarkup()
         for task_id, _, _, _, is_done in tasks:
             row = []
             if not is_done:
-                row.append(types.InlineKeyboardButton(callback_data=f"complete:{task_id}", text=f"{task_id} - ✅ Выполнена"))
-            row.append(types.InlineKeyboardButton(callback_data=f"delete:{task_id}", text=f"{task_id} - 🗑 Удалить"))
+                row.append(types.InlineKeyboardButton(callback_data=f"complete:{task_id}",
+                                                      text=f"{task_id} - ✅ Выполнена"))
+            row.append(types.InlineKeyboardButton(callback_data=f"delete:{task_id}",
+                                                  text=f"{task_id} - 🗑 Удалить"))
             markup.add(*row)
 
         if edit:
