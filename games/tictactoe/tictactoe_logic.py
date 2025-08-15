@@ -12,7 +12,7 @@ WIN_LINES = [
     (0,4,8),(2,4,6)
 ]
 
-# --------- Игровая логика ---------
+
 def check_winner(state: State) -> int:
     for a,b,c in WIN_LINES:
         if state[a] == state[b] == state[c] != 0:
@@ -34,7 +34,7 @@ def render_board(state: State) -> str:
     sym = {0:'·', 1:'X', 2:'O'}
     return "\n".join(" ".join(sym[state[3*r+c]] for c in range(3)) for r in range(3))
 
-# --------- Q-learning агент ---------
+
 class QLearningAgent:
     def __init__(self, alpha=0.5, gamma=0.9, epsilon=0.1):
         self.alpha = alpha
