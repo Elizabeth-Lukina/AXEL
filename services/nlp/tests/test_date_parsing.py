@@ -1,5 +1,5 @@
 import pytest
-from nlp.parser import parse_intent
+from services.nlp.parser import parse_intent
 from datetime import datetime, timedelta
 
 @pytest.mark.parametrize("phrase,days_delta", [

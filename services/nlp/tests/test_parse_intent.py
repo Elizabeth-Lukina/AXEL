@@ -1,6 +1,5 @@
-import pytest
 from datetime import datetime, timedelta
-from nlp.parser import parse_intent
+from services.nlp.parser import parse_intent
 
 
 def test_add_task_with_tomorrow():

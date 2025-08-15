@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timedelta
-from nlp.parser import parse_intent
+from services.nlp.parser import parse_intent
 from db.queries import add_task, get_tasks
 import sqlite3
 import os
