@@ -4,7 +4,7 @@ from telebot import types
 def get_main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("🌤 Погода", "💱 Курс валют")
-    markup.add("🧠 Мысль дня", "⏰ Время рассылки")
+    markup.add("🧠 Мысль дня", "⏰ Управление рассылкой")
     markup.add("📋 Планировщик", "🎲 Поиграем?")
     markup.add("📬 Обратная связь")
     return markup
@@ -27,4 +27,10 @@ def get_subscription_items_keyboard():
 def get_menu_tasks():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("📅 Задачи на сегодня", "🔙 Назад в главное меню")
+    return markup
+
+def get_manage_subscription_menu():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("✏ Изменить содержание", "⏰ Изменить время", "🚫 Отменить рассылку")
+    markup.add("⬅ Назад в главное меню")
     return markup

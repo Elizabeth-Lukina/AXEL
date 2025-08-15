@@ -175,3 +175,15 @@ def get_preferences(chat_id):
     if row and row[0]:
         return row[0].split(",")
     return []
+
+def disable_daily_report(chat_id):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET daily_enabled = 0 WHERE chat_id = ?", (chat_id,))
+        conn.commit()
+
+def enable_daily_report(chat_id):
+    with connect() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET daily_enabled = 1 WHERE chat_id = ?", (chat_id,))
+        conn.commit()

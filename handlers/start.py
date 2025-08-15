@@ -2,7 +2,7 @@ from telebot import types
 
 from services.daily_report import schedule_report_for_user
 from db.queries import user_exists, set_state, get_state, save_preferences, get_preferences, update_user_time, \
-    clear_state
+    clear_state, enable_daily_report
 from ui.ui import get_main_menu, get_subscription_items_keyboard, get_yes_no_keyboard
 
 
@@ -64,6 +64,7 @@ def register_handlers_start(bot):
                              reply_markup=types.ReplyKeyboardRemove())
             bot.send_message(chat_id, "Когда хочешь получать рассылку? Введи время в формате ЧЧ:ММ")
             set_state(chat_id, "awaiting_time_start")
+            enable_daily_report(chat_id)
             return
 
         if text in valid_items:
