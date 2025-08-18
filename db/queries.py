@@ -95,21 +95,44 @@ def delete_task(chat_id, text_or_id):
         return cur.rowcount > 0
 
 
-def reschedule_task(chat_id, text_or_id, new_date: datetime):
+def reschedule_task(chat_id, text_or_id, new_date):
+    """
+    Переносит задачу на новую дату/время.
+    :param chat_id: ID пользователя
+    :param text_or_id: либо ID задачи, либо часть текста
+    :param new_date: datetime или date (строка тоже конвертнется)
+    """
+    from datetime import datetime
+
+    # Если пришла строка → пробуем распарсить
+    if isinstance(new_date, str):
+        try:
+            new_date = datetime.fromisoformat(new_date)
+        except ValueError:
+            try:
+                new_date = datetime.strptime(new_date, "%Y-%m-%d")
+            except Exception:
+                return False
+
+    # Если пришёл date → переводим в datetime (00:00)
+    if hasattr(new_date, "strftime") and not hasattr(new_date, "hour"):
+        new_date = datetime.combine(new_date, datetime.min.time())
+
     with connect() as conn:
         cur = conn.cursor()
-        if text_or_id.isdigit():
+        if str(text_or_id).isdigit():
             cur.execute(
                 "UPDATE tasks SET due_date = ? WHERE chat_id = ? AND id = ?",
-                (new_date.strftime("%Y-%m-%d"), chat_id, int(text_or_id))
+                (new_date.strftime("%Y-%m-%d %H:%M:%S"), chat_id, int(text_or_id))
             )
         else:
             cur.execute(
                 "UPDATE tasks SET due_date = ? WHERE chat_id = ? AND task LIKE ?",
-                (new_date.strftime("%Y-%m-%d"), chat_id, f"%{text_or_id}%")
+                (new_date.strftime("%Y-%m-%d %H:%M:%S"), chat_id, f"%{text_or_id}%")
             )
         conn.commit()
         return cur.rowcount > 0
+
 
 
 def get_tasks(chat_id):

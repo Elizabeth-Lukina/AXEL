@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from telebot import types
 from db.queries import (
     add_task, delete_task, reschedule_task,
@@ -9,7 +11,6 @@ from ui.ui import get_menu_tasks, get_main_menu
 
 
 def register_task_handlers(bot, parse_intent):
-
     @bot.message_handler(func=lambda m: m.text == "📋 Планировщик")
     def enter_task_mode(message):
         chat_id = message.chat.id
@@ -103,13 +104,33 @@ def register_task_handlers(bot, parse_intent):
                 bot.send_message(chat_id, text)
             return
 
-        # Формируем таблицу
         headers = ["ID", "Задача", "Создана", "Срок", "Статус"]
         rows = []
         for task_id, task_text, created_at, due_date, is_done in tasks:
             status = "✅" if is_done else "❌"
-            created_str = created_at.split(" ")[0] if created_at else "—"
-            due_str = due_date if due_date else "—"
+
+            # Создана
+            try:
+                created_dt = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+                created_str = created_dt.strftime("%d.%m.%Y %H:%M")
+            except Exception:
+                created_str = created_at if created_at else "—"
+
+            # Срок
+            if due_date:
+                try:
+                    due_dt = datetime.strptime(due_date, "%Y-%m-%d %H:%M:%S")
+                    due_str = due_dt.strftime("%d.%m.%Y %H:%M")
+                except Exception:
+                    try:
+                        # если в базе хранится только дата
+                        due_dt = datetime.strptime(due_date, "%Y-%m-%d")
+                        due_str = due_dt.strftime("%d.%m.%Y")
+                    except Exception:
+                        due_str = due_date
+            else:
+                due_str = "—"
+
             rows.append([task_id, task_text[:30], created_str, due_str, status])
 
         table_text = tabulate(rows, headers, tablefmt="plain", stralign="center")
