@@ -59,7 +59,7 @@ def register_task_handlers(bot, parse_intent):
             elif intent == "list_tasks":
                 send_task_list(bot, chat_id)
 
-            elif intent == "mark_task_completed":
+            elif intent == "complete_task":
                 task_id = int(result.get("task", "").strip())
                 success = mark_task_completed(chat_id, task_id)
                 bot.send_message(chat_id,

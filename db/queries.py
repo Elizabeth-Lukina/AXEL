@@ -117,6 +117,7 @@ def reschedule_task(chat_id, text_or_id, new_date):
     # Если пришёл date → переводим в datetime (00:00)
     if hasattr(new_date, "strftime") and not hasattr(new_date, "hour"):
         new_date = datetime.combine(new_date, datetime.min.time())
+        print('Я тут не упал')
 
     with connect() as conn:
         cur = conn.cursor()
